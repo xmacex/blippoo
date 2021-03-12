@@ -268,6 +268,14 @@ function redraw()
     screen.text("[" .. midi_mode .. "]")
   end
 
+  -- UI indicator
+  screen.level(1)
+  screen.rect(
+    (128/2)*math.floor(math.fmod(dial_tuple-1,8)/4),
+    (64/4)*(math.fmod(dial_tuple-1,4)),
+    128/4*2, 64/4)
+  screen.fill()
+
   dial_freq_osc_a:redraw()
   dial_freq_osc_b:redraw()
   dial_fm_a_b:redraw()
