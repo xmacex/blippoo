@@ -13,11 +13,13 @@
 engine.name = "Blippoo"
 
 local hs = include("lib/blippoo_halfsecond")
+local ui = require("lib.ui")
 
 local midi_devices = {}
 local midi_mode = ""
 
 local page = 1
+local dial_tuple = 1
 local last_page = page
 local pages = {
   {name = "source oscillators", e1 = "volume", e2 ="freq osc a", e3 = "freq osc b"},
@@ -178,10 +180,61 @@ local function setup_midi()
   end
 end
 
+local function setup_ui()
+  -- Oscillators
+  dial_freq_osc_a = ui.Dial.new(118/4*0+10, 64/4*0, 10, params:get("freq_osc_a"),
+    osc_spec.minval, osc_spec.maxval, nil, osc_spec.minval,
+    nil, nil, "RATE A")
+  dial_freq_osc_b = ui.Dial.new(118/4*1+10, 64/4*0, 10, params:get("freq_osc_b"),
+    osc_spec.minval, osc_spec.maxval, nil, osc_spec.minval,
+    nil, nil, "RATE B")
+
+  -- FM
+  dial_fm_a_b = ui.Dial.new(118/4*0+10, 64/4*1, 10, params:get("fm_a_b"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "FM A=>B")
+  dial_fm_b_a = ui.Dial.new(118/4*1+10, 64/4*1, 10, params:get("fm_b_a"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "FM B=>A")
+
+  -- Rungler
+  dial_fm_r_a = ui.Dial.new(118/4*0+10, 64/4*2, 10, params:get("fm_r_a"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "R A")
+  dial_fm_r_b = ui.Dial.new(118/4*1+10, 64/4*2, 10, params:get("fm_r_b"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "R B")
+
+  -- S&H
+  dial_fm_sah_a = ui.Dial.new(118/4*0+10, 64/4*3, 10, params:get("fm_sah_a"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "S&H A")
+  dial_fm_sah_b = ui.Dial.new(118/4*1+10, 64/4*3, 10, params:get("fm_sah_b"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "S&H B")
+
+  -- Filters
+  dial_freq_peak1 = ui.Dial.new(118/4*2+10, 64/4*0, 10, params:get("freqPeak1"),
+    filter_spec.minval, filter_spec.maxval, nil, filter_spec.minval,
+    nil, nil, "F^1")
+  dial_freq_peak2 = ui.Dial.new(118/4*3+10, 64/4*0, 10, params:get("freqPeak2"),
+    filter_spec.minval, filter_spec.maxval, nil, filter_spec.minval,
+    nil, nil, "F^2")
+
+  -- Rungler filters
+  dial_fm_r_peak1 = ui.Dial.new(118/4*2+10, 64/4*1, 10, params:get("fm_r_peak1"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "FM^1")
+  dial_fm_r_peak2 = ui.Dial.new(118/4*3+10, 64/4*1, 10, params:get("fm_r_peak2"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "FM^2")
+end
+
 function init()
   setup_params()
   setup_defaults()
   setup_midi()
+  setup_ui()
 end
 
 function redraw()
@@ -189,28 +242,41 @@ function redraw()
   
   p = pages[page]
   
-  screen.level(15)
-  screen.move(0, 10)
-  screen.text(p["name"])
+  -- screen.level(15)
+  -- screen.move(0, 10)
+  -- screen.text(p["name"])
   
-  screen.level(5)
-  screen.move(10, 30)
-  screen.text(p["e1"])
-  screen.move(10, 40)
-  screen.text(p["e2"])
-  screen.move(10, 50)
-  screen.text(p["e3"])
+  -- screen.level(5)
+  -- screen.move(10, 30)
+  -- screen.text(p["e1"])
+  -- screen.move(10, 40)
+  -- screen.text(p["e2"])
+  -- screen.move(10, 50)
+  -- screen.text(p["e3"])
   
   screen.level(1)
   screen.move(0, 64)
   if midi_mode ~= nil and midi_mode ~= "" then
     screen.text("[" .. midi_mode .. "]")
   end
+
+  dial_freq_osc_a:redraw()
+  dial_freq_osc_b:redraw()
+  dial_fm_a_b:redraw()
+  dial_fm_b_a:redraw()
+  dial_fm_r_a:redraw()
+  dial_fm_r_b:redraw()
+  dial_fm_sah_a:redraw()
+  dial_fm_sah_b:redraw()
+  dial_freq_peak1:redraw()
+  dial_freq_peak2:redraw()
+  dial_fm_r_peak1:redraw()
+  dial_fm_r_peak2:redraw()
   
   screen.update()
 end
 
-function enc(n, d)
+function enc_with_pages(n, d)
   if page == 1 then
     if n == 1 then
       params:delta("amp", d)
@@ -238,7 +304,79 @@ function enc(n, d)
   end
 end
 
-function key(n, z)
+function enc(n, d)
+  if dial_tuple == 1 then
+    -- Osc
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("freq_osc_a", d)
+      dial_freq_osc_a:set_value(params:get("freq_osc_a"))
+    elseif n == 3 then
+      params:delta("freq_osc_b", d)
+      dial_freq_osc_b:set_value(params:get("freq_osc_b"))
+    end
+  elseif dial_tuple == 2 then
+    -- FM
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("fm_a_b", d)
+      dial_fm_a_b:set_value(params:get("fm_a_b"))
+    elseif n == 3 then
+      params:delta("fm_b_a", d)
+      dial_fm_b_a:set_value(params:get("fm_b_a"))
+    end
+  elseif dial_tuple == 3 then
+  -- Rungler
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("fm_r_a", d)
+      dial_fm_r_a:set_value(params:get("fm_r_a"))
+    elseif n == 3 then
+      params:delta("fm_r_b", d)
+      dial_fm_r_b:set_value(params:get("fm_r_b"))
+    end
+  elseif dial_tuple == 4 then
+    -- S&H
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("fm_sah_b", d)
+      dial_fm_sah_a:set_value(params:get("fm_sah_a"))
+    elseif n == 3 then
+      params:delta("fm_sah_b", d)
+      dial_fm_sah_b:set_value(params:get("fm_sah_b"))
+    end
+  elseif dial_tuple == 5 then
+    -- Freq peaks
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("freqPeak1", d)
+      dial_freq_peak1:set_value(params:get("freqPeak1"))
+    elseif n == 3 then
+      params:delta("freqPeak2", d)
+      dial_freq_peak2:set_value(params:get("freqPeak2"))
+    end
+  elseif dial_tuple == 6 then
+    -- FM freq peaks
+    if n == 1 then
+      params:delta("amp", d)
+    elseif n == 2 then
+      params:delta("fm_r_peak1", d)
+      dial_fm_r_peak1:set_value(params:get("fm_r_peak1"))
+    elseif n == 3 then
+      params:delta("fm_r_peak2", d)
+      dial_fm_r_peak2:set_value(params:get("fm_r_peak2"))
+    end
+  end
+
+  redraw()
+end
+
+function key_with_pages(n, z)
   if n == 1 then
     if z == 1 then
       last_page = page
@@ -252,5 +390,17 @@ function key(n, z)
     page = 2
   end
   
+  redraw()
+end
+
+function key(n, z)
+  if z == 1 then
+    if n == 2 then
+      dial_tuple = dial_tuple - 1
+    elseif n == 3 then
+      dial_tuple = dial_tuple + 1
+    end
+    print("now on dial tuple "..dial_tuple)
+  end
   redraw()
 end
