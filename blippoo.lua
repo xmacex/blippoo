@@ -361,7 +361,7 @@ function enc(n, d)
     if n == 1 then
       params:delta("amp", d)
     elseif n == 2 then
-      params:delta("fm_sah_b", d)
+      params:delta("fm_sah_a", d)
       dial_fm_sah_a:set_value(params:get("fm_sah_a"))
     elseif n == 3 then
       params:delta("fm_sah_b", d)
@@ -431,8 +431,10 @@ function key(n, z)
   if z == 1 then
     if n == 2 then
       dial_tuple = dial_tuple - 1
+      if dial_tuple < 1 then dial_tuple = 8 end
     elseif n == 3 then
       dial_tuple = dial_tuple + 1
+      if dial_tuple > 8 then dial_tuple = 1 end
     end
     print("now on dial tuple "..dial_tuple)
   end
