@@ -184,50 +184,58 @@ local function setup_ui()
   -- Oscillators
   dial_freq_osc_a = ui.Dial.new(118/4*0+10, 64/4*0, 10, params:get("freq_osc_a"),
     osc_spec.minval, osc_spec.maxval, nil, osc_spec.minval,
-    nil, nil, "RATE A")
+    nil, nil, "~A")
   dial_freq_osc_b = ui.Dial.new(118/4*1+10, 64/4*0, 10, params:get("freq_osc_b"),
     osc_spec.minval, osc_spec.maxval, nil, osc_spec.minval,
-    nil, nil, "RATE B")
+    nil, nil, "~B")
 
   -- FM
   dial_fm_a_b = ui.Dial.new(118/4*0+10, 64/4*1, 10, params:get("fm_a_b"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "FM A=>B")
+    nil, nil, "*A=>B")
   dial_fm_b_a = ui.Dial.new(118/4*1+10, 64/4*1, 10, params:get("fm_b_a"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "FM B=>A")
+    nil, nil, "*B=>A")
 
   -- Rungler
   dial_fm_r_a = ui.Dial.new(118/4*0+10, 64/4*2, 10, params:get("fm_r_a"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "R A")
+    nil, nil, "*R=>A")
   dial_fm_r_b = ui.Dial.new(118/4*1+10, 64/4*2, 10, params:get("fm_r_b"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "R B")
+    nil, nil, "*R=>B")
 
   -- S&H
   dial_fm_sah_a = ui.Dial.new(118/4*0+10, 64/4*3, 10, params:get("fm_sah_a"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "S&H A")
+    nil, nil, "*SH=>A")
   dial_fm_sah_b = ui.Dial.new(118/4*1+10, 64/4*3, 10, params:get("fm_sah_b"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "S&H B")
+    nil, nil, "*SH=>B")
 
   -- Filters
   dial_freq_peak1 = ui.Dial.new(118/4*2+10, 64/4*0, 10, params:get("freqPeak1"),
     filter_spec.minval, filter_spec.maxval, nil, filter_spec.minval,
-    nil, nil, "F^1")
+    nil, nil, "^1")
   dial_freq_peak2 = ui.Dial.new(118/4*3+10, 64/4*0, 10, params:get("freqPeak2"),
     filter_spec.minval, filter_spec.maxval, nil, filter_spec.minval,
-    nil, nil, "F^2")
+    nil, nil, "^2")
+
+  dial_resonance = ui.Dial.new(118/4*2+10, 64/4*1, 10, params:get("resonance"),
+    res_spec.minval, res_spec.maxval, nil, res_spec.minval,
+    nil, nil, "^%")
 
   -- Rungler filters
-  dial_fm_r_peak1 = ui.Dial.new(118/4*2+10, 64/4*1, 10, params:get("fm_r_peak1"),
+  dial_fm_r_peak1 = ui.Dial.new(118/4*2+10, 64/4*2, 10, params:get("fm_r_peak1"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "FM^1")
-  dial_fm_r_peak2 = ui.Dial.new(118/4*3+10, 64/4*1, 10, params:get("fm_r_peak2"),
+    nil, nil, "*R^1")
+  dial_fm_r_peak2 = ui.Dial.new(118/4*3+10, 64/4*2, 10, params:get("fm_r_peak2"),
     mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
-    nil, nil, "FM^2")
+    nil, nil, "*R^2")
+
+  dial_fm_sah_peak = ui.Dial.new(118/4*2+10, 64/4*3, 10, params:get("fm_sah_peak"),
+    mod_spec.minval, mod_spec.maxval, nil, mod_spec.minval,
+    nil, nil, "*SH=>^")
 end
 
 function init()
@@ -272,6 +280,8 @@ function redraw()
   dial_freq_peak2:redraw()
   dial_fm_r_peak1:redraw()
   dial_fm_r_peak2:redraw()
+  dial_resonance:redraw()
+  dial_fm_sah_peak:redraw()
   
   screen.update()
 end
@@ -361,6 +371,14 @@ function enc(n, d)
       dial_freq_peak2:set_value(params:get("freqPeak2"))
     end
   elseif dial_tuple == 6 then
+    -- Resonance
+    if n == 1 then
+      param:delta("amp", d)
+    else
+      params:delta("resonance", d)
+      dial_resonance:set_value(params:get("resonance"))
+    end
+  elseif dial_tuple == 7 then
     -- FM freq peaks
     if n == 1 then
       params:delta("amp", d)
@@ -370,6 +388,14 @@ function enc(n, d)
     elseif n == 3 then
       params:delta("fm_r_peak2", d)
       dial_fm_r_peak2:set_value(params:get("fm_r_peak2"))
+    end
+  elseif dial_tuple == 8 then
+    -- FM S&H => peak
+    if n == 1 then
+      param:delta("amp", d)
+    else
+      params:delta("fm_sah_peak", d)
+      dial_fm_sah_peak:set_value(params:get("fm_sah_peak"))
     end
   end
 
