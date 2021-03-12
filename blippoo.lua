@@ -1,11 +1,12 @@
 -- ~~ blippoo ~~
 -- blippoo box clone
 --
--- by: @cfd90
+-- by: @cfd90, UI by @xmacex
 -- original sccode by: @olaf
 --
--- K1/K2/K3 page navigation
--- E1/E2/E3 change page params
+-- E1 volume
+-- K2/K3 select pair of dials
+-- E2/E3 dial twiddling
 --
 -- connect a MIDI Fighter Twister
 -- before boot (slot 1) for automap
@@ -18,14 +19,7 @@ local ui = require("lib.ui")
 local midi_devices = {}
 local midi_mode = ""
 
-local page = 1
 local dial_tuple = 1
-local last_page = page
-local pages = {
-  {name = "source oscillators", e1 = "volume", e2 ="freq osc a", e3 = "freq osc b"},
-  {name = "twin peak resonator", e1 = "resonance", e2 = "freq peak a", e3 = "freq peak b"},
-  {name = "delay", e1 = "volume", e2 = "rate", e3 = "feedback"}
-}
 
 local osc_spec = controlspec.new(0.01, 5000, 'exp', 0.01, 100, 'hz', 10/5000)
 local mod_spec = controlspec.new(0.01, 1000, 'exp', 0.01, 100, '', 10/1000)
@@ -248,20 +242,6 @@ end
 function redraw()
   screen.clear()
   
-  p = pages[page]
-  
-  -- screen.level(15)
-  -- screen.move(0, 10)
-  -- screen.text(p["name"])
-  
-  -- screen.level(5)
-  -- screen.move(10, 30)
-  -- screen.text(p["e1"])
-  -- screen.move(10, 40)
-  -- screen.text(p["e2"])
-  -- screen.move(10, 50)
-  -- screen.text(p["e3"])
-  
   screen.level(1)
   screen.move(0, 64)
   if midi_mode ~= nil and midi_mode ~= "" then
@@ -292,34 +272,6 @@ function redraw()
   dial_fm_sah_peak:redraw()
   
   screen.update()
-end
-
-function enc_with_pages(n, d)
-  if page == 1 then
-    if n == 1 then
-      params:delta("amp", d)
-    elseif n == 2 then
-      params:delta("freq_osc_a", d)
-    elseif n == 3 then
-      params:delta("freq_osc_b", d)
-    end
-  elseif page == 2 then
-    if n == 1 then
-      params:delta("resonance", d)
-    elseif n == 2 then
-      params:delta("freqPeak1", d)
-    elseif n == 3 then
-      params:delta("freqPeak2", d)
-    end
-  elseif page == 3 then
-    if n == 1 then
-      params:delta("delay", d)
-    elseif n == 2 then
-      params:delta("delay_rate", d)
-    elseif n == 3 then
-      params:delta("delay_feedback", d)
-    end
-  end
 end
 
 function enc(n, d)
@@ -407,23 +359,6 @@ function enc(n, d)
     end
   end
 
-  redraw()
-end
-
-function key_with_pages(n, z)
-  if n == 1 then
-    if z == 1 then
-      last_page = page
-      page = 3
-    else
-      page = last_page
-    end
-  elseif n == 2 then
-    page = 1
-  elseif n == 3 then
-    page = 2
-  end
-  
   redraw()
 end
 
